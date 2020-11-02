@@ -3,26 +3,26 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/FirstFragment">
+    app:startDestination="@id/IssueListFragment">
 
     <fragment
-        android:id="@+id/FirstFragment"
-        android:name="ioanarotaru.kotlinproject.FirstFragment"
-        android:label="@string/first_fragment_label"
-        tools:layout="@layout/fragment_first">
+        android:id="@+id/IssueListFragment"
+        android:name="ioanarotaru.kotlinproject.issues_comp.issues.IssueListFragment"
+        android:label="@string/issue_list_fragment_label"
+        tools:layout="@layout/fragment_issue_list">
 
         <action
-            android:id="@+id/action_FirstFragment_to_SecondFragment"
-            app:destination="@id/SecondFragment" />
+            android:id="@+id/action_IssueListFragment_to_IssueEditFragment"
+            app:destination="@id/IssueEditFragment" />
     </fragment>
     <fragment
-        android:id="@+id/SecondFragment"
-        android:name="ioanarotaru.kotlinproject.SecondFragment"
-        android:label="@string/second_fragment_label"
-        tools:layout="@layout/fragment_second">
+        android:id="@+id/IssueEditFragment"
+        android:name="ioanarotaru.kotlinproject.issues_comp.issue.IssueEditFragment"
+        android:label="@string/issue_edit_fragment_label"
+        tools:layout="@layout/fragment_issue_edit">
 
         <action
             android:id="@+id/action_SecondFragment_to_FirstFragment"
-            app:destination="@id/FirstFragment" />
+            app:destination="@id/IssueListFragment" />
     </fragment>
 </navigation>
