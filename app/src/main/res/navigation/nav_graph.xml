@@ -3,26 +3,32 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/IssueListFragment">
+    app:startDestination="@id/fragment_issue_list">
 
     <fragment
-        android:id="@+id/IssueListFragment"
+        android:id="@+id/fragment_login"
+        android:name="ioanarotaru.kotlinproject.auth.login.LoginFragment"
+        android:label="@string/login"
+        tools:layout="@layout/fragment_login" />
+
+    <fragment
+        android:id="@+id/fragment_issue_list"
         android:name="ioanarotaru.kotlinproject.issues_comp.issues.IssueListFragment"
         android:label="@string/issue_list_fragment_label"
         tools:layout="@layout/fragment_issue_list">
 
         <action
             android:id="@+id/action_IssueListFragment_to_IssueEditFragment"
-            app:destination="@id/IssueEditFragment" />
+            app:destination="@id/fragment_issue_edit" />
     </fragment>
     <fragment
-        android:id="@+id/IssueEditFragment"
+        android:id="@+id/fragment_issue_edit"
         android:name="ioanarotaru.kotlinproject.issues_comp.issue.IssueEditFragment"
         android:label="@string/issue_edit_fragment_label"
         tools:layout="@layout/fragment_issue_edit">
 
         <action
             android:id="@+id/action_SecondFragment_to_FirstFragment"
-            app:destination="@id/IssueListFragment" />
+            app:destination="@id/fragment_issue_list" />
     </fragment>
 </navigation>

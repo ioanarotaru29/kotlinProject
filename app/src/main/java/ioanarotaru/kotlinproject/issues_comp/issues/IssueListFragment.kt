@@ -11,6 +11,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.observe
 import androidx.navigation.fragment.findNavController
 import ioanarotaru.kotlinproject.R
+import ioanarotaru.kotlinproject.auth.data.AuthRepository
 import ioanarotaru.kotlinproject.core.TAG
 import kotlinx.android.synthetic.main.fragment_issue_list.*
 
@@ -33,10 +34,14 @@ class IssueListFragment: Fragment() {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         Log.v(TAG, "onActivityCreated")
+        if (!AuthRepository.isLoggedIn) {
+            findNavController().navigate(R.id.fragment_login)
+            return;
+        }
         setupIssueList()
         fab.setOnClickListener {
             Log.v(TAG, "add new issue")
-            findNavController().navigate(R.id.IssueEditFragment)
+            findNavController().navigate(R.id.fragment_issue_edit)
         }
     }
 
@@ -59,7 +64,7 @@ class IssueListFragment: Fragment() {
                 Toast.makeText(activity, message, Toast.LENGTH_SHORT).show()
             }
         }
-        issuesModel.loadIssues()
+        issuesModel.refresh()
     }
 
     override fun onDestroy() {

@@ -1,45 +1,46 @@
 package ioanarotaru.kotlinproject.issues_comp.issues
 
+import android.app.Application
 import android.util.Log
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
 import ioanarotaru.kotlinproject.core.TAG
+import ioanarotaru.kotlinproject.core.Result
 import ioanarotaru.kotlinproject.issues_comp.data.Issue
 import ioanarotaru.kotlinproject.issues_comp.data.IssueRepository
+import ioanarotaru.kotlinproject.issues_comp.data.local.IssuesDatabase
 import kotlinx.coroutines.launch
 
-class IssueListViewModel : ViewModel() {
-    private val mutableIssues = MutableLiveData<List<Issue>>().apply { value = emptyList() }
+class IssueListViewModel(application: Application) : AndroidViewModel(application) {
     private val mutableLoading = MutableLiveData<Boolean>().apply { value = false }
     private val mutableException = MutableLiveData<Exception>().apply { value = null }
 
-    val issues: LiveData<List<Issue>> = mutableIssues
+    val issues: LiveData<List<Issue>>
     val loading: LiveData<Boolean> = mutableLoading
     val loadingError: LiveData<Exception> = mutableException
 
-    fun createIssue(position: Int): Unit {
-        val list = mutableListOf<Issue>()
-        list.addAll(mutableIssues.value!!)
-        list.add(Issue(position.toString(), "Issue " + position,"",""))
-        mutableIssues.value = list
+    val issueRepository: IssueRepository
+
+    init {
+        val issueDao = IssuesDatabase.getDatabase(application, viewModelScope).issueDao()
+        issueRepository = IssueRepository(issueDao)
+        issues = issueRepository.issues
     }
 
-    fun loadIssues() {
+    fun refresh() {
         viewModelScope.launch {
-            Log.v(TAG, "loadIssues...");
+            Log.v(TAG, "refresh...");
             mutableLoading.value = true
             mutableException.value = null
-            try {
-                mutableIssues.value = IssueRepository.loadAll()
-                Log.d(TAG, "loadIssues succeeded");
-                mutableLoading.value = false
-            } catch (e: Exception) {
-                Log.w(TAG, "loadIssues failed", e);
-                mutableException.value = e
-                mutableLoading.value = false
+            when (val result = issueRepository.refresh()) {
+                is Result.Success -> {
+                    Log.d(TAG, "refresh succeeded");
+                }
+                is Result.Error -> {
+                    Log.w(TAG, "refresh failed", result.exception);
+                    mutableException.value = result.exception
+                }
             }
+            mutableLoading.value = false
         }
     }
 }

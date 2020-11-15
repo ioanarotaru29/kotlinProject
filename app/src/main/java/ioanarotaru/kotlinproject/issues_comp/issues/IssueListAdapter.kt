@@ -29,8 +29,8 @@ class IssueListAdapter (
     init {
         onIssueClick = View.OnClickListener { view ->
             val issue = view.tag as Issue
-            fragment.findNavController().navigate(R.id.IssueEditFragment, Bundle().apply {
-                putString(IssueEditFragment.ISSUE_ID, issue.id)
+            fragment.findNavController().navigate(R.id.fragment_issue_edit, Bundle().apply {
+                putString(IssueEditFragment.ISSUE_ID, issue._id)
             })
         }
     }

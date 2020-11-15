@@ -15,6 +15,7 @@ import ioanarotaru.kotlinproject.core.TAG
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.fragment_issue_edit.*
 import androidx.lifecycle.observe
+import ioanarotaru.kotlinproject.issues_comp.data.Issue
 
 class IssueEditFragment: Fragment() {
     companion object {
@@ -23,6 +24,7 @@ class IssueEditFragment: Fragment() {
 
     private lateinit var viewModel: IssueEditViewModel
     private var issueId: String? = null
+    private var issue: Issue? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,11 +45,6 @@ class IssueEditFragment: Fragment() {
         return inflater.inflate(R.layout.fragment_issue_edit, container, false)
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        Log.v(TAG, "onViewCreated")
-        issue_title.setText(issueId)
-    }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
@@ -55,23 +52,29 @@ class IssueEditFragment: Fragment() {
         setupViewModel()
         fabSave.setOnClickListener {
             Log.v(TAG, "save issue")
-            viewModel.saveOrUpdateIssue(issue_title.text.toString(),issue_description.text.toString(),issue_state.text.toString())
+            val i = issue
+            if (i != null){
+                i.title = issue_title.text.toString()
+                i.description = issue_description.text.toString()
+                i.state = issue_state.text.toString()
+                viewModel.saveOrUpdateIssue(i)
+            }
         }
         fabDelete.setOnClickListener {
             Log.v(TAG, "delete issue")
-            viewModel.deleteIssue()
+            val i = issue
+            if(i != null){
+                i.title = issue_title.text.toString()
+                i.description = issue_description.text.toString()
+                i.state = issue_state.text.toString()
+                viewModel.deleteIssue(i)
+            }
         }
 
     }
 
     private fun setupViewModel() {
         viewModel = ViewModelProvider(this).get(IssueEditViewModel::class.java)
-        viewModel.issue.observe(viewLifecycleOwner) { issue ->
-            Log.v(TAG, "update issues")
-            issue_title.setText(issue.title)
-            issue_description.setText(issue.description)
-            issue_state.setText(issue.state)
-        }
         viewModel.fetching.observe(viewLifecycleOwner) { fetching ->
             Log.v(TAG, "update fetching")
             progress.visibility = if (fetching) View.VISIBLE else View.GONE
@@ -86,15 +89,25 @@ class IssueEditFragment: Fragment() {
                 }
             }
         }
-        viewModel.completed.observe(viewLifecycleOwner, Observer { completed ->
+        viewModel.completed.observe(viewLifecycleOwner) { completed ->
             if (completed) {
                 Log.v(TAG, "completed, navigate back")
-                findNavController().navigateUp()
+                findNavController().popBackStack()
             }
-        })
+        }
         val id = issueId
-        if (id != null) {
-            viewModel.loadIssue(id)
+        if (id == null) {
+            issue = Issue("", "","","")
+        } else {
+            viewModel.getIssueById(id).observe(viewLifecycleOwner) {
+                Log.v(TAG, "update issues")
+                if (it != null) {
+                    issue = it
+                    issue_title.setText(it.title)
+                    issue_description.setText(it.description)
+                    issue_state.setText(it.state)
+                }
+            }
         }
     }
 }

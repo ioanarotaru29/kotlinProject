@@ -1,57 +1,59 @@
 package ioanarotaru.kotlinproject.issues_comp.data
 
 import android.util.Log
+import androidx.lifecycle.LiveData
 import ioanarotaru.kotlinproject.core.TAG
+import ioanarotaru.kotlinproject.core.Result
+import ioanarotaru.kotlinproject.issues_comp.data.local.IssueDao
 import retrofit2.Response
 import ro.ubbcluj.cs.ilazar.myapp2.todo.data.remote.IssueApi
 
-object IssueRepository {
-    private var cachedIssues: MutableList<Issue>? = null;
+class IssueRepository(private val issueDao: IssueDao) {
+    val issues = issueDao.getAll()
 
-    suspend fun loadAll(): List<Issue> {
-        Log.i(TAG, "loadAll")
-        if (cachedIssues != null) {
-            return cachedIssues as List<Issue>;
+    suspend fun refresh(): Result<Boolean> {
+        try {
+            val issues = IssueApi.service.find()
+            for (issue in issues) {
+                issueDao.insert(issue)
+            }
+            return Result.Success(true)
+        } catch(e: Exception) {
+            return Result.Error(e)
         }
-        cachedIssues = mutableListOf()
-        val issues = IssueApi.service.find()
-        cachedIssues?.addAll(issues)
-        return cachedIssues as List<Issue>
     }
 
-    suspend fun load(issueId: String): Issue {
-        Log.i(TAG, "load")
-        val issue = cachedIssues?.find { it.id == issueId }
-        if (issue != null) {
-            return issue
-        }
-        return IssueApi.service.read(issueId)
+    fun getById(issueId: String): LiveData<Issue> {
+        return issueDao.getById(issueId)
     }
 
-    suspend fun save(issue: Issue): Issue {
-        Log.i(TAG, "save")
-        val createdIssue = IssueApi.service.create(issue)
-        cachedIssues?.add(createdIssue)
-        return createdIssue
+    suspend fun save(issue: Issue): Result<Issue> {
+        try {
+            val createdIssue = IssueApi.service.create(issue)
+            issueDao.insert(createdIssue)
+            return Result.Success(createdIssue)
+        } catch(e: Exception) {
+            return Result.Error(e)
+        }
     }
 
-    suspend fun update(issue: Issue): Issue {
-        Log.i(TAG, "update")
-        val updatedIssue = IssueApi.service.update(issue.id, issue)
-        val index = cachedIssues?.indexOfFirst { it.id == issue.id }
-        if (index != null) {
-            cachedIssues?.set(index, updatedIssue)
+    suspend fun update(issue: Issue): Result<Issue> {
+        try {
+            val updatedIssue = IssueApi.service.update(issue._id, issue)
+            issueDao.update(updatedIssue)
+            return Result.Success(updatedIssue)
+        } catch(e: Exception) {
+            return Result.Error(e)
         }
-        return updatedIssue
     }
 
-    suspend fun delete(issue: Issue): Response<Void> {
-        Log.i(TAG, "delete")
-        val deletedIssue = IssueApi.service.delete(issue.id)
-        val index = cachedIssues?.indexOfFirst { it.id == issue.id }
-        if (index != null) {
-            cachedIssues?.removeAt(index)
+    suspend fun delete(issue: Issue): Result<Issue> {
+        try {
+            val deletedIssue = IssueApi.service.delete(issue._id)
+            issueDao.delete(issue)
+            return Result.Success(issue)
+        } catch(e: Exception) {
+            return Result.Error(e)
         }
-        return deletedIssue
     }
 }

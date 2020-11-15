@@ -7,6 +7,14 @@
     <string name="edit">Edit</string>
     <string name="cancel">Cancel</string>
 
+    <string name="login">Login</string>
+    <string name="username">Username</string>
+    <string name="invalid_username">Not a valid username</string>
+    <string name="invalid_password">Password must not be empty</string>
+    <string name="password">Password</string>
+    <string name="sign_in">Sign In</string>
+
+
     <string name="issue_list_fragment">Issue list fragment</string>
     <string name="issue_edit_fragment">Issue edit fragment</string>
 </resources>
