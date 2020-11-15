@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name">kotlinProject</string>
-    <string name="action_settings">Settings</string>
+    <string name="action_logout">Sign Out</string>
     <!-- Strings used for fragments for navigation -->
     <string name="issue_list_fragment_label">Issue List</string>
     <string name="issue_edit_fragment_label">Issue Edit</string>
