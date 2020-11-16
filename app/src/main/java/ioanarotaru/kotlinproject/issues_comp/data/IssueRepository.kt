@@ -1,10 +1,15 @@
 package ioanarotaru.kotlinproject.issues_comp.data
 
+import android.app.Application
+import android.content.Context
 import android.util.Log
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.viewModelScope
 import ioanarotaru.kotlinproject.core.TAG
 import ioanarotaru.kotlinproject.core.Result
 import ioanarotaru.kotlinproject.issues_comp.data.local.IssueDao
+import ioanarotaru.kotlinproject.issues_comp.data.local.IssuesDatabase
+import kotlinx.coroutines.GlobalScope
 import retrofit2.Response
 import ro.ubbcluj.cs.ilazar.myapp2.todo.data.remote.IssueApi
 
@@ -54,6 +59,12 @@ class IssueRepository(private val issueDao: IssueDao) {
             return Result.Success(issue)
         } catch(e: Exception) {
             return Result.Error(e)
+        }
+    }
+
+    companion object{
+        suspend fun deleteAll(context : Context) {
+            IssuesDatabase.getDatabase(context, GlobalScope).issueDao().deleteAll()
         }
     }
 }

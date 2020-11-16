@@ -1,5 +1,7 @@
 package ioanarotaru.kotlinproject
 
+import android.app.Application
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -9,10 +11,20 @@ import android.view.Menu
 import android.view.MenuItem
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
+import androidx.lifecycle.viewModelScope
 import androidx.navigation.Navigation
 import androidx.navigation.fragment.FragmentNavigator
+import androidx.room.RoomDatabase
 import ioanarotaru.kotlinproject.auth.data.AuthRepository
+import ioanarotaru.kotlinproject.auth.data.TokenHolder
+import ioanarotaru.kotlinproject.auth.data.User
+import ioanarotaru.kotlinproject.core.Api
 import ioanarotaru.kotlinproject.core.TAG
+import ioanarotaru.kotlinproject.core.sp
+import ioanarotaru.kotlinproject.issues_comp.data.IssueRepository
+import ioanarotaru.kotlinproject.issues_comp.data.local.IssuesDatabase
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 
 class MainActivity : AppCompatActivity() {
@@ -24,6 +36,13 @@ class MainActivity : AppCompatActivity() {
         setSupportActionBar(findViewById(R.id.toolbar))
 
         Log.i(TAG, "onCreate")
+        sp = getSharedPreferences("login", Context.MODE_PRIVATE);
+        if(sp?.contains("token") == true && sp?.contains("username") == true && sp?.contains("password") == true){
+            var username = sp?.getString("username","").toString()
+            var password = sp?.getString("password", "").toString()
+            var tokenHolder = TokenHolder(sp?.getString("token","").toString())
+            AuthRepository.setLoggedInUser(User(username,password), tokenHolder)
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -39,6 +58,9 @@ class MainActivity : AppCompatActivity() {
         return when (item.itemId) {
             R.id.action_logout -> {
                 AuthRepository.logout()
+                GlobalScope.launch {
+                    IssueRepository.deleteAll(this@MainActivity)
+                }
                 finish();
                 overridePendingTransition( 0, 0);
                 startActivity(intent);

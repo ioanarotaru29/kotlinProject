@@ -39,21 +39,6 @@ abstract class IssuesDatabase : RoomDatabase() {
 
         private class WordDatabaseCallback(private val scope: CoroutineScope) :
             RoomDatabase.Callback() {
-
-            override fun onOpen(db: SupportSQLiteDatabase) {
-                super.onOpen(db)
-                INSTANCE?.let { database ->
-                    scope.launch(Dispatchers.IO) {
-                        populateDatabase(database.issueDao())
-                    }
-                }
-            }
-        }
-
-        suspend fun populateDatabase(issueDao: IssueDao) {
-            issueDao.deleteAll()
-            val issue = Issue("1", "Hello", "Test","")
-            issueDao.insert(issue)
         }
     }
 
