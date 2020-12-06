@@ -2,6 +2,11 @@ package ioanarotaru.kotlinproject
 
 import android.app.Application
 import android.content.Context
+import android.net.ConnectivityManager
+import android.net.LinkProperties
+import android.net.Network
+import android.net.NetworkCapabilities
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -9,8 +14,12 @@ import com.google.android.material.snackbar.Snackbar
 import androidx.appcompat.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
+import android.widget.RadioButton
+import android.widget.TextView
+import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
+import androidx.lifecycle.observe
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.Navigation
 import androidx.navigation.fragment.FragmentNavigator
@@ -19,6 +28,7 @@ import ioanarotaru.kotlinproject.auth.data.AuthRepository
 import ioanarotaru.kotlinproject.auth.data.TokenHolder
 import ioanarotaru.kotlinproject.auth.data.User
 import ioanarotaru.kotlinproject.core.Api
+import ioanarotaru.kotlinproject.core.ConnectivityLiveData
 import ioanarotaru.kotlinproject.core.TAG
 import ioanarotaru.kotlinproject.core.sp
 import ioanarotaru.kotlinproject.issues_comp.data.IssueRepository
@@ -28,8 +38,11 @@ import kotlinx.coroutines.launch
 
 
 class MainActivity : AppCompatActivity() {
+    private lateinit var connectivityManager: ConnectivityManager
+    private lateinit var connectivityLiveData: ConnectivityLiveData
 
 
+    @RequiresApi(Build.VERSION_CODES.M)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -43,6 +56,30 @@ class MainActivity : AppCompatActivity() {
             var tokenHolder = TokenHolder(sp?.getString("token","").toString())
             AuthRepository.setLoggedInUser(User(username,password), tokenHolder)
         }
+
+        connectivityManager = getSystemService(android.net.ConnectivityManager::class.java)
+        connectivityLiveData = ConnectivityLiveData(connectivityManager)
+        connectivityLiveData.observe(this) {
+            Log.d(TAG, "connectivityLiveData $it")
+            if(it)
+                findViewById<TextView>(R.id.textViewState).setText("Connected");
+            else
+                findViewById<TextView>(R.id.textViewState).setText("Disconnected");
+
+
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.N)
+    override fun onStart() {
+        super.onStart()
+        connectivityManager.registerDefaultNetworkCallback(networkCallback)
+    }
+
+    @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
+    override fun onStop() {
+        super.onStop()
+        connectivityManager.unregisterNetworkCallback(networkCallback)
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -68,6 +105,31 @@ class MainActivity : AppCompatActivity() {
                 return true;
             }
             else -> super.onOptionsItemSelected(item)
+        }
+    }
+
+    val networkCallback = @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
+    object : ConnectivityManager.NetworkCallback() {
+        override fun onAvailable(network: Network) {
+            Log.d(TAG, "The default network is now: " + network)
+        }
+
+        override fun onLost(network: Network) {
+            Log.d(
+                TAG,
+                "The application no longer has a default network. The last default network was " + network
+            )
+        }
+
+        override fun onCapabilitiesChanged(
+            network: Network,
+            networkCapabilities: NetworkCapabilities
+        ) {
+            Log.d(TAG, "The default network changed capabilities: " + networkCapabilities)
+        }
+
+        override fun onLinkPropertiesChanged(network: Network, linkProperties: LinkProperties) {
+            Log.d(TAG, "The default network changed link properties: " + linkProperties)
         }
     }
 }
