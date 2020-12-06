@@ -1,6 +1,8 @@
 package ioanarotaru.kotlinproject.issues_comp.issues
 
 import android.app.Application
+import android.content.Context
+import android.net.ConnectivityManager
 import android.util.Log
 import androidx.lifecycle.*
 import ioanarotaru.kotlinproject.core.TAG
@@ -22,8 +24,11 @@ class IssueListViewModel(application: Application) : AndroidViewModel(applicatio
 
     init {
         val issueDao = IssuesDatabase.getDatabase(application, viewModelScope).issueDao()
-        issueRepository = IssueRepository(issueDao)
+        issueRepository = IssueRepository(issueDao,
+            application.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        )
         issues = issueRepository.issues
+
     }
 
     fun refresh() {
@@ -37,7 +42,7 @@ class IssueListViewModel(application: Application) : AndroidViewModel(applicatio
                 }
                 is Result.Error -> {
                     Log.w(TAG, "refresh failed", result.exception);
-                    mutableException.value = result.exception
+                    mutableException.value = Exception("Using local storage");
                 }
             }
             mutableLoading.value = false

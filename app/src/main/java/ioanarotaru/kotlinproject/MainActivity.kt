@@ -1,6 +1,5 @@
 package ioanarotaru.kotlinproject
 
-import android.app.Application
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.LinkProperties
@@ -9,30 +8,19 @@ import android.net.NetworkCapabilities
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
-import com.google.android.material.floatingactionbutton.FloatingActionButton
-import com.google.android.material.snackbar.Snackbar
-import androidx.appcompat.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
-import android.widget.RadioButton
 import android.widget.TextView
 import androidx.annotation.RequiresApi
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentTransaction
+import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.observe
-import androidx.lifecycle.viewModelScope
-import androidx.navigation.Navigation
-import androidx.navigation.fragment.FragmentNavigator
-import androidx.room.RoomDatabase
 import ioanarotaru.kotlinproject.auth.data.AuthRepository
 import ioanarotaru.kotlinproject.auth.data.TokenHolder
 import ioanarotaru.kotlinproject.auth.data.User
-import ioanarotaru.kotlinproject.core.Api
 import ioanarotaru.kotlinproject.core.ConnectivityLiveData
 import ioanarotaru.kotlinproject.core.TAG
 import ioanarotaru.kotlinproject.core.sp
 import ioanarotaru.kotlinproject.issues_comp.data.IssueRepository
-import ioanarotaru.kotlinproject.issues_comp.data.local.IssuesDatabase
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 

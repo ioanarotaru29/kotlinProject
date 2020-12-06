@@ -1,8 +1,23 @@
 package ioanarotaru.kotlinproject.issues_comp.issue
 
 import android.app.Application
+import android.net.ConnectivityManager
+import android.net.Network
 import android.util.Log
+import androidx.core.content.ContextCompat.getSystemService
 import androidx.lifecycle.*
+import android.content.Context
+import android.net.LinkProperties
+import android.net.NetworkCapabilities
+import android.os.Build
+import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
+import android.widget.TextView
+import androidx.annotation.RequiresApi
+import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.observe
+import ioanarotaru.kotlinproject.core.ConnectivityLiveData
 import ioanarotaru.kotlinproject.core.TAG
 import ioanarotaru.kotlinproject.core.Result
 import ioanarotaru.kotlinproject.issues_comp.data.Issue
@@ -23,7 +38,9 @@ class IssueEditViewModel(application: Application) : AndroidViewModel(applicatio
 
     init {
         val issueDao = IssuesDatabase.getDatabase(application, viewModelScope).issueDao()
-        issueRepository = IssueRepository(issueDao)
+        issueRepository = IssueRepository(issueDao,
+            application.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        );
     }
 
     fun getIssueById(issueId: String): LiveData<Issue> {
@@ -48,7 +65,7 @@ class IssueEditViewModel(application: Application) : AndroidViewModel(applicatio
                 }
                 is Result.Error -> {
                     Log.w(TAG, "saveOrUpdateItem failed", result.exception);
-                    mutableException.value = result.exception
+                    mutableException.value = Exception("Saved or updated locally");
                 }
             }
             mutableCompleted.value = true
