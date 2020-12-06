@@ -9,6 +9,9 @@ interface IssueDao {
     @Query("SELECT * from issues")
     fun getAll(): LiveData<List<Issue>>
 
+    @Query("SELECT * from issues")
+    fun getAllRealData(): List<Issue>
+
     @Query("SELECT * FROM issues WHERE _id=:id ")
     fun getById(id: String): LiveData<Issue>
 

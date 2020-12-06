@@ -11,9 +11,14 @@ import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.TextView
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.observe
+import androidx.work.Constraints
+import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequest
+import androidx.work.WorkManager
 import ioanarotaru.kotlinproject.auth.data.AuthRepository
 import ioanarotaru.kotlinproject.auth.data.TokenHolder
 import ioanarotaru.kotlinproject.auth.data.User
@@ -21,6 +26,7 @@ import ioanarotaru.kotlinproject.core.ConnectivityLiveData
 import ioanarotaru.kotlinproject.core.TAG
 import ioanarotaru.kotlinproject.core.sp
 import ioanarotaru.kotlinproject.issues_comp.data.IssueRepository
+import ioanarotaru.kotlinproject.issues_comp.data.Worker
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
@@ -49,8 +55,10 @@ class MainActivity : AppCompatActivity() {
         connectivityLiveData = ConnectivityLiveData(connectivityManager)
         connectivityLiveData.observe(this) {
             Log.d(TAG, "connectivityLiveData $it")
-            if(it)
+            if(it){
                 findViewById<TextView>(R.id.textViewState).setText("Connected");
+                startWorker();
+            }
             else
                 findViewById<TextView>(R.id.textViewState).setText("Disconnected");
 
@@ -119,5 +127,28 @@ class MainActivity : AppCompatActivity() {
         override fun onLinkPropertiesChanged(network: Network, linkProperties: LinkProperties) {
             Log.d(TAG, "The default network changed link properties: " + linkProperties)
         }
+    }
+
+    private fun startWorker() {
+        // setup WorkRequest
+        val constraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .build()
+
+        val myWork = OneTimeWorkRequest.Builder(Worker::class.java)
+            .setConstraints(constraints)
+            .build()
+        val workId = myWork.id
+        WorkManager.getInstance(this).apply {
+            // enqueue Work
+            enqueue(myWork)
+            // observe work status
+            getWorkInfoByIdLiveData(workId)
+                .observe(this@MainActivity) { status ->
+                    val isFinished = status?.state?.isFinished
+                    Log.d(TAG, "Job $workId; finished: $isFinished")
+                }
+        }
+        Toast.makeText(this, "Job $workId enqueued", Toast.LENGTH_SHORT).show()
     }
 }
