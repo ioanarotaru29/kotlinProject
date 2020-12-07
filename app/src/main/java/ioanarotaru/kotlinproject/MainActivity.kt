@@ -1,5 +1,6 @@
 package ioanarotaru.kotlinproject
 
+import android.app.Application
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.LinkProperties
@@ -15,6 +16,7 @@ import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.observe
+import androidx.lifecycle.viewModelScope
 import androidx.work.Constraints
 import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequest
@@ -23,15 +25,22 @@ import ioanarotaru.kotlinproject.auth.data.AuthRepository
 import ioanarotaru.kotlinproject.auth.data.TokenHolder
 import ioanarotaru.kotlinproject.auth.data.User
 import ioanarotaru.kotlinproject.core.ConnectivityLiveData
+import ioanarotaru.kotlinproject.core.RemoteDataSource
 import ioanarotaru.kotlinproject.core.TAG
 import ioanarotaru.kotlinproject.core.sp
+import ioanarotaru.kotlinproject.issues_comp.data.Issue
 import ioanarotaru.kotlinproject.issues_comp.data.IssueRepository
 import ioanarotaru.kotlinproject.issues_comp.data.Worker
+import ioanarotaru.kotlinproject.issues_comp.data.local.IssuesDatabase
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import org.json.JSONObject
 
 
 class MainActivity : AppCompatActivity() {
+    private var isActive = false;
     private lateinit var connectivityManager: ConnectivityManager
     private lateinit var connectivityLiveData: ConnectivityLiveData
 
@@ -70,12 +79,15 @@ class MainActivity : AppCompatActivity() {
     override fun onStart() {
         super.onStart()
         connectivityManager.registerDefaultNetworkCallback(networkCallback)
+        isActive = true
+        CoroutineScope(Dispatchers.Main).launch { collectEvents() }
     }
 
     @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
     override fun onStop() {
         super.onStop()
         connectivityManager.unregisterNetworkCallback(networkCallback)
+        isActive = false
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -150,5 +162,28 @@ class MainActivity : AppCompatActivity() {
                 }
         }
         Toast.makeText(this, "Job $workId enqueued", Toast.LENGTH_SHORT).show()
+    }
+
+    private suspend fun collectEvents() {
+        while (isActive) {
+            val event = RemoteDataSource.eventChannel.receive()
+            Log.d("MainActivity", "received $event")
+
+            val issueDao = IssuesDatabase.getDatabase(applicationContext, GlobalScope).issueDao()
+
+            val obj = JSONObject(event);
+            val type = obj.getString("type");
+            val json_issue = obj.getJSONObject("payload");
+            val issue = Issue(json_issue.getString("_id"),json_issue.getString("title"),json_issue.getString("description"),json_issue.getString("state"));
+            if(type == "saved"){
+                issueDao.insert(issue)
+            }
+            if(type == "updated"){
+                issueDao.update(issue)
+            }
+            if(type == "deleted"){
+                issueDao.delete(issue)
+            }
+        }
     }
 }

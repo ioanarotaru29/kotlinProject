@@ -35,6 +35,7 @@ class IssueRepository(private val issueDao: IssueDao, private val connectivityMa
         }
         try {
             val issues = IssueApi.service.find()
+            issueDao.deleteAll()
             for (issue in issues) {
                 issueDao.insert(issue)
             }
