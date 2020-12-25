@@ -174,7 +174,7 @@ class MainActivity : AppCompatActivity() {
             val obj = JSONObject(event);
             val type = obj.getString("type");
             val json_issue = obj.getJSONObject("payload");
-            val issue = Issue(json_issue.getString("_id"),json_issue.getString("title"),json_issue.getString("description"),json_issue.getString("state"));
+            val issue = Issue(json_issue.getString("_id"),json_issue.getString("title"),json_issue.getString("description"),json_issue.getString("state"), if (json_issue.has("photoPath")) json_issue.getString("photoPath") else null);
             if(type == "saved"){
                 issueDao.insert(issue)
             }

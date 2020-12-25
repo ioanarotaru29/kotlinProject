@@ -50,6 +50,7 @@ class IssueRepository(private val issueDao: IssueDao, private val connectivityMa
     }
 
     suspend fun save(issue: Issue): Result<Issue> {
+        Log.d(TAG, "POST" + issue._id);
         if(!isOnline()){
             val createdIssue = issue;
             createdIssue._id = "saved"+savedLocally;

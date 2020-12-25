@@ -9,7 +9,8 @@ data class Issue(
     @PrimaryKey @ColumnInfo(name = "_id") var _id: String,
     @ColumnInfo(name = "title") var title: String,
     @ColumnInfo(name = "description") var description: String,
-    @ColumnInfo(name = "state") var state: String
+    @ColumnInfo(name = "state") var state: String,
+    @ColumnInfo(name = "photoPath") var photoPath: String?
 ) {
     override fun toString(): String = "$title $description $state"
 }

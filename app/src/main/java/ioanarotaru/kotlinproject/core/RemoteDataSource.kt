@@ -17,7 +17,7 @@ object RemoteDataSource {
     val eventChannel = Channel<String>()
 
     init {
-        val request = Request.Builder().url("ws://192.168.0.104:3000").build()
+        val request = Request.Builder().url("ws://192.168.100.41:3000").build()
         val webSocket = OkHttpClient().newWebSocket(request, MyWebSocketListener())
     }
 

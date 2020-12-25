@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
@@ -17,12 +18,10 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import ioanarotaru.kotlinproject.R
 import ioanarotaru.kotlinproject.core.TAG
-import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.fragment_issue_edit.*
 import androidx.lifecycle.observe
 import ioanarotaru.kotlinproject.issues_comp.data.Issue
@@ -123,7 +122,7 @@ class IssueEditFragment: Fragment() {
         }
         val id = issueId
         if (id == null) {
-            issue = Issue("", "","","")
+            issue = Issue("", "","","", null)
         } else {
             viewModel.getIssueById(id).observe(viewLifecycleOwner) {
                 Log.v(TAG, "update issues")
@@ -132,6 +131,9 @@ class IssueEditFragment: Fragment() {
                     issue_title.setText(it.title)
                     issue_description.setText(it.description)
                     issue_state.setText(it.state)
+                    if(it.photoPath != null){
+                        ivImage.setImageURI(Uri.parse(it.photoPath))
+                    }
                 }
             }
         }
@@ -179,10 +181,12 @@ class IssueEditFragment: Fragment() {
         if (resultCode == AppCompatActivity.RESULT_OK) {
             if (requestCode == REQUEST_IMAGE_CAPTURE) {
                 val uri = Uri.parse(currentPhotoPath)
+                issue?.photoPath = currentPhotoPath
                 ivImage.setImageURI(uri)
             }
             else if (requestCode == REQUEST_PICK_IMAGE) {
                 val uri = data?.getData()
+                issue?.photoPath = uri.toString()
                 ivImage.setImageURI(uri)
             }
         }
