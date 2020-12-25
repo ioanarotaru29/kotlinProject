@@ -1,11 +1,21 @@
 package ioanarotaru.kotlinproject.issues_comp.issue
 
+import android.Manifest
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Bundle
+import android.os.Environment
+import android.provider.MediaStore
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -16,11 +26,21 @@ import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.fragment_issue_edit.*
 import androidx.lifecycle.observe
 import ioanarotaru.kotlinproject.issues_comp.data.Issue
+import java.io.File
+import java.io.IOException
+import java.text.SimpleDateFormat
+import java.util.*
 
 class IssueEditFragment: Fragment() {
     companion object {
         const val ISSUE_ID = "ISSUE_ID"
     }
+
+    private val REQUEST_PERMISSION = 10
+    private val REQUEST_IMAGE_CAPTURE = 1
+    private val REQUEST_PICK_IMAGE = 2
+
+    lateinit var currentPhotoPath: String
 
     private lateinit var viewModel: IssueEditViewModel
     private var issueId: String? = null
@@ -70,7 +90,13 @@ class IssueEditFragment: Fragment() {
                 viewModel.deleteIssue(i)
             }
         }
+        btTakePhoto.setOnClickListener { openCamera() }
+        btOpenGallery.setOnClickListener { openGallery() }
+    }
 
+    override fun onResume() {
+        super.onResume()
+        checkCameraPermission()
     }
 
     private fun setupViewModel() {
@@ -108,6 +134,66 @@ class IssueEditFragment: Fragment() {
                     issue_state.setText(it.state)
                 }
             }
+        }
+    }
+
+    private fun checkCameraPermission() {
+        if (ContextCompat.checkSelfPermission(this.requireContext(), Manifest.permission.CAMERA)
+            != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this.requireActivity(),
+                arrayOf(Manifest.permission.CAMERA),
+                REQUEST_PERMISSION)
+        }
+    }
+
+    private fun openCamera() {
+        Intent(MediaStore.ACTION_IMAGE_CAPTURE).also { intent ->
+            intent.resolveActivity(this.requireActivity().packageManager)?.also {
+                val photoFile: File? = try {
+                    createCapturedPhoto()
+                } catch (ex: IOException) {
+                    null
+                }
+                Log.d("MainActivity", "photofile $photoFile");
+                photoFile?.also {
+                    val photoURI = FileProvider.getUriForFile(
+                        this.requireContext(),
+                        "ioanarotaru.kotlinproject.fileprovider",
+                        it
+                    )
+                    intent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI)
+                    startActivityForResult(intent, REQUEST_IMAGE_CAPTURE)
+                }
+            }
+        }
+    }
+
+    private fun openGallery() {
+        val intent = Intent(Intent.ACTION_GET_CONTENT)
+        intent.type = "image/*"
+        startActivityForResult(intent, REQUEST_PICK_IMAGE)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (resultCode == AppCompatActivity.RESULT_OK) {
+            if (requestCode == REQUEST_IMAGE_CAPTURE) {
+                val uri = Uri.parse(currentPhotoPath)
+                ivImage.setImageURI(uri)
+            }
+            else if (requestCode == REQUEST_PICK_IMAGE) {
+                val uri = data?.getData()
+                ivImage.setImageURI(uri)
+            }
+        }
+    }
+
+    @Throws(IOException::class)
+    private fun createCapturedPhoto(): File {
+        val timestamp: String = SimpleDateFormat("yyyyMMdd-HHmmss", Locale.US).format(Date())
+        val storageDir = this.requireActivity().getExternalFilesDir(Environment.DIRECTORY_PICTURES)
+        return File.createTempFile("PHOTO_${timestamp}",".jpg", storageDir).apply {
+            currentPhotoPath = absolutePath
         }
     }
 }
