@@ -24,6 +24,7 @@ import ioanarotaru.kotlinproject.R
 import ioanarotaru.kotlinproject.core.TAG
 import kotlinx.android.synthetic.main.fragment_issue_edit.*
 import androidx.lifecycle.observe
+import ioanarotaru.kotlinproject.MapsActivity
 import ioanarotaru.kotlinproject.issues_comp.data.Issue
 import ioanarotaru.kotlinproject.utils.RealPathUtil
 import java.io.File
@@ -39,8 +40,11 @@ class IssueEditFragment: Fragment() {
     private val REQUEST_PERMISSION = 10
     private val REQUEST_IMAGE_CAPTURE = 1
     private val REQUEST_PICK_IMAGE = 2
+    private val REQUEST_LOCATION = 3
 
     lateinit var currentPhotoPath: String
+    private var longitude: Double = 5.0
+    private var latitude: Double = 5.0
 
     private lateinit var viewModel: IssueEditViewModel
     private var issueId: String? = null
@@ -92,6 +96,7 @@ class IssueEditFragment: Fragment() {
         }
         btTakePhoto.setOnClickListener { openCamera() }
         btOpenGallery.setOnClickListener { openGallery() }
+        btOpenMap.setOnClickListener { openMap() }
     }
 
     override fun onResume() {
@@ -177,6 +182,13 @@ class IssueEditFragment: Fragment() {
         startActivityForResult(intent, REQUEST_PICK_IMAGE)
     }
 
+    private fun openMap() {
+        startActivityForResult(Intent(this.requireContext(), MapsActivity::class.java).also { intent ->
+            intent.putExtra("LONGITUDE_VALUE", longitude)
+            intent.putExtra("LATITUDE_VALUE", latitude)
+        }, REQUEST_LOCATION)
+    }
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (resultCode == AppCompatActivity.RESULT_OK) {
@@ -189,6 +201,13 @@ class IssueEditFragment: Fragment() {
                 val uri = data?.getData()
                 issue?.photoPath = uri?.let { RealPathUtil.getRealPath(this.requireContext(), it) }
                 ivImage.setImageURI(uri)
+            }
+            else if (requestCode == REQUEST_LOCATION){
+                Log.d(TAG, "Returned from location");
+                var extras = data?.extras
+                latitude = extras?.get("LATITUDE_VALUE") as Double
+                longitude = extras?.get("LONGITUDE_VALUE") as Double
+                Log.d(TAG,"Location result: Lat -> ${latitude} Long -> ${longitude}")
             }
         }
     }
