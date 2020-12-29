@@ -1,10 +1,12 @@
 package ioanarotaru.kotlinproject.issues_comp.issues
 
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
@@ -14,6 +16,7 @@ import ioanarotaru.kotlinproject.core.TAG
 import ioanarotaru.kotlinproject.issues_comp.data.Issue
 import ioanarotaru.kotlinproject.issues_comp.issue.IssueEditFragment
 import kotlinx.android.synthetic.main.view_issue.view.*
+import java.io.File
 
 class IssueListAdapter (
     private val fragment: Fragment
@@ -49,6 +52,8 @@ class IssueListAdapter (
         holder.titleView.text = issue.title
         holder.descriptionView.text = issue.description
         holder.stateView.text = issue.state
+        if(issue.photoPath != null && issue.photoPath != "")
+            holder.imageView.setImageURI(Uri.fromFile(File(issue.photoPath)))
         holder.itemView.setOnClickListener(onIssueClick)
     }
 
@@ -58,5 +63,6 @@ class IssueListAdapter (
         val titleView: TextView = view.title
         val descriptionView: TextView = view.description
         val stateView: TextView = view.state
+        val imageView: ImageView = view.image
     }
 }

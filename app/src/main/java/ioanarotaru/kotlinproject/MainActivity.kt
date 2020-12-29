@@ -65,8 +65,9 @@ class MainActivity : AppCompatActivity() {
         connectivityLiveData.observe(this) {
             Log.d(TAG, "connectivityLiveData $it")
             if(it){
+                if(findViewById<TextView>(R.id.textViewState).text === "Disconnected")
+                    startWorker()
                 findViewById<TextView>(R.id.textViewState).setText("Connected");
-                startWorker();
             }
             else
                 findViewById<TextView>(R.id.textViewState).setText("Disconnected");

@@ -25,6 +25,7 @@ import ioanarotaru.kotlinproject.core.TAG
 import kotlinx.android.synthetic.main.fragment_issue_edit.*
 import androidx.lifecycle.observe
 import ioanarotaru.kotlinproject.issues_comp.data.Issue
+import ioanarotaru.kotlinproject.utils.RealPathUtil
 import java.io.File
 import java.io.IOException
 import java.text.SimpleDateFormat
@@ -132,7 +133,7 @@ class IssueEditFragment: Fragment() {
                     issue_description.setText(it.description)
                     issue_state.setText(it.state)
                     if(it.photoPath != null){
-                        ivImage.setImageURI(Uri.parse(it.photoPath))
+                        ivImage.setImageURI(Uri.fromFile(File(it.photoPath)))
                     }
                 }
             }
@@ -186,7 +187,7 @@ class IssueEditFragment: Fragment() {
             }
             else if (requestCode == REQUEST_PICK_IMAGE) {
                 val uri = data?.getData()
-                issue?.photoPath = uri.toString()
+                issue?.photoPath = uri?.let { RealPathUtil.getRealPath(this.requireContext(), it) }
                 ivImage.setImageURI(uri)
             }
         }
