@@ -43,8 +43,6 @@ class IssueEditFragment: Fragment() {
     private val REQUEST_LOCATION = 3
 
     lateinit var currentPhotoPath: String
-    private var longitude: Double = 5.0
-    private var latitude: Double = 5.0
 
     private lateinit var viewModel: IssueEditViewModel
     private var issueId: String? = null
@@ -128,7 +126,7 @@ class IssueEditFragment: Fragment() {
         }
         val id = issueId
         if (id == null) {
-            issue = Issue("", "","","", null)
+            issue = Issue("", "","","", null, 0.0, 0.0)
         } else {
             viewModel.getIssueById(id).observe(viewLifecycleOwner) {
                 Log.v(TAG, "update issues")
@@ -140,6 +138,10 @@ class IssueEditFragment: Fragment() {
                     if(it.photoPath != null){
                         ivImage.setImageURI(Uri.fromFile(File(it.photoPath)))
                     }
+                    if(it.latitude == null)
+                        issue?.latitude = 0.0
+                    if(it.longitude == null)
+                        issue?.longitude = 0.0
                 }
             }
         }
@@ -184,8 +186,8 @@ class IssueEditFragment: Fragment() {
 
     private fun openMap() {
         startActivityForResult(Intent(this.requireContext(), MapsActivity::class.java).also { intent ->
-            intent.putExtra("LONGITUDE_VALUE", longitude)
-            intent.putExtra("LATITUDE_VALUE", latitude)
+            intent.putExtra("LONGITUDE_VALUE", issue?.longitude)
+            intent.putExtra("LATITUDE_VALUE", issue?.latitude)
         }, REQUEST_LOCATION)
     }
 
@@ -205,9 +207,9 @@ class IssueEditFragment: Fragment() {
             else if (requestCode == REQUEST_LOCATION){
                 Log.d(TAG, "Returned from location");
                 var extras = data?.extras
-                latitude = extras?.get("LATITUDE_VALUE") as Double
-                longitude = extras?.get("LONGITUDE_VALUE") as Double
-                Log.d(TAG,"Location result: Lat -> ${latitude} Long -> ${longitude}")
+                issue?.latitude = extras?.get("LATITUDE_VALUE") as Double
+                issue?.longitude = extras?.get("LONGITUDE_VALUE") as Double
+                Log.d(TAG,"Location result: Lat -> ${issue?.latitude} Long -> ${issue?.longitude}")
             }
         }
     }

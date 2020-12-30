@@ -10,7 +10,9 @@ data class Issue(
     @ColumnInfo(name = "title") var title: String,
     @ColumnInfo(name = "description") var description: String,
     @ColumnInfo(name = "state") var state: String,
-    @ColumnInfo(name = "photoPath") var photoPath: String?
+    @ColumnInfo(name = "photoPath") var photoPath: String?,
+    @ColumnInfo(name = "latitude") var latitude: Double?,
+    @ColumnInfo(name = "longitude") var longitude: Double?
 ) {
     override fun toString(): String = "$title $description $state"
 }
